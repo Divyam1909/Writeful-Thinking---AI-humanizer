@@ -67,6 +67,8 @@ export const streamHumanizedText = async (
       **SETTINGS**:
       - **Tone**: ${personaMap[tone]}
       - **Intensity**: ${strengthDirectives[strength]}
+      - **Context/Purpose**: ${purpose}
+      - **Target Reading Level**: ${readability}
 
       **GOLD STANDARD EXAMPLES (MIMIC THIS STYLE EXACTLY)**:
       

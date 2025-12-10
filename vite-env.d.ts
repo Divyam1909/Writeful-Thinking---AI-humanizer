@@ -1,7 +1,8 @@
-// Fix: Remove reference to vite/client to resolve "Cannot find type definition file" error.
-// Fix: Augment NodeJS.ProcessEnv to add API_KEY instead of redeclaring 'process' to avoid type conflicts.
+/// <reference types="vite/client" />
+
 declare namespace NodeJS {
   interface ProcessEnv {
-    API_KEY: string;
+    readonly API_KEY: string;
+    [key: string]: string | undefined;
   }
 }

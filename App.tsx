@@ -273,7 +273,6 @@ const App: React.FC = () => {
                 originalContent={inputText}
                 isStreaming={isStreaming} 
                 onRegenerate={handleHumanize}
-                hasInput={!!inputText}
               />
             )}
           </div>

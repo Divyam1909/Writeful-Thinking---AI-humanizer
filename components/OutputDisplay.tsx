@@ -10,12 +10,11 @@ interface OutputDisplayProps {
   originalContent: string;
   isStreaming: boolean;
   onRegenerate: () => void;
-  hasInput: boolean;
 }
 
 type ViewMode = 'text' | 'diff';
 
-const OutputDisplay: React.FC<OutputDisplayProps> = ({ content, originalContent, isStreaming, onRegenerate, hasInput }) => {
+const OutputDisplay: React.FC<OutputDisplayProps> = ({ content, originalContent, isStreaming, onRegenerate }) => {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('text');
   const [isDetecting, setIsDetecting] = useState(false);
