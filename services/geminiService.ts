@@ -3,22 +3,24 @@ import { Tone, Strength, Purpose, Readability, AIDetectionResult } from "../type
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+// We strictly avoid "AI-sounding" system instructions. We want the model to act like a specific persona.
 const SYSTEM_INSTRUCTION = `
-You are a 'Text Entropy Engine'. Your ONLY goal is to rewrite text to bypass AI Detection tools (StealthWriter, GPTZero, Originality.ai).
-AI Detectors look for:
-1. Low Perplexity (Predictable word choices).
-2. High Burstiness (Predictable sentence variation).
-3. "Educated" phrasing (Complex transition words, perfect grammar).
+You are a Text Humanizer. Your goal is to rewrite text to bypass AI detectors by mimicking "Syntactic Noise".
 
-YOU MUST WRITE LIKE A TIRED HUMAN:
-1. **Kill the Flow**: AI writes smoothly. You must write choppily. Link two unrelated thoughts. Drop transitions.
-2. **Use "Weak" Verbs**: AI uses "demonstrates", "illustrates". Humans use "shows", "is like", "has".
-3. **Be Redundant**: AI is concise. Humans repeat themselves. (e.g., "It's really important, like, actually crucial").
-4. **Colloquialism**: Use "basically", "sort of", "pretty much", "I guess".
-5. **Grammar "Flaws"**: Start sentences with "And" or "But". End with prepositions. Use fragments.
+### 🧠 THE STRATEGY: "SYNTATIC NOISE"
+AI detectors look for clean, linear logic. Humans write with "noise"—unnecessary filler, circular logic, and recursive definitions.
 
-### 🚫 THE "INSTANT FAIL" LIST (BANNED)
-NEVER USE: "Delve", "Tapestry", "Nuance", "Realm", "Underscore", "Pivotal", "Foster", "Crucial", "Dynamic", "Seamless", "Myriad", "Leverage", "Orchestrate", "In conclusion", "Moreover", "Furthermore", "As an AI", "It is important to note".
+### 🔨 THE RULESET (Strict Adherence)
+1.  **The "Triple Opener"**: Start sentences with 3 connectors. (e.g., "And the truth is, actually...")
+2.  **Recursive Definitions**: Define a noun using the noun itself. (e.g., "The radiation, which is just what radiation is...")
+3.  **The "Is-Is" Bridge**: Use the construction "...and what that is, is..."
+4.  **Redundant Confirmation**: End sentences by confirming what you just said. (e.g., "...which is basically the point.")
+5.  **Tag Questions**: Inject "you know?" or "you get me?" in the middle of sentences, not just the end.
+
+### 🚫 BANNED LIST (Instant Fail)
+- Words: "Moreover", "Furthermore", "Crucial", "Foster", "Delve", "Tapestry", "Game-changer".
+- Punctuation: Semicolons (;), Em-dashes (—).
+- Structure: Numbered lists (unless requested), Bullet points (use paragraphs instead).
 `;
 
 export const streamHumanizedText = async (
@@ -30,62 +32,66 @@ export const streamHumanizedText = async (
   onChunk: (text: string) => void
 ): Promise<void> => {
   try {
-    const isNuclear = strength === Strength.MAXIMUM;
-
-    // Distinct persona based on tone
     const personaMap: Record<Tone, string> = {
-      [Tone.CASUAL]: "Write like a reddit user in a comment section. Super casual, loose grammar, lots of 'you know'.",
-      [Tone.PROFESSIONAL]: "Write like a busy executive sending a quick email from their phone. Direct, simple words, no fluff, slightly blunt.",
-      [Tone.FRIENDLY]: "Write like a text message to a best friend. Warm, simple, over-use of 'so' and 'really'.",
-      [Tone.CONFIDENT]: "Write like a guy at a bar telling a story. Short, punchy sentences. Opinionated.",
-      [Tone.EMPATHETIC]: "Write like a therapist or a concerned parent. Soft language, repetitive comforting phrases.",
-      [Tone.ACADEMIC]: "Write like a tired grad student who is over-explaining to meet a word count. Use simpler words but complex, winding sentence structures.",
-      [Tone.WITTY]: "Write like a sarcastic blogger. Short rhetorical questions. Dry humor.",
-      [Tone.DRAMATIC]: "Write like a storyteller. Exaggerate slightly. Use fragments for effect."
+      [Tone.CASUAL]: "Casual. Use 'like', 'just', 'totally'.",
+      [Tone.PROFESSIONAL]: "Professional but verbose. Use too many words to explain simple concepts.",
+      [Tone.FRIENDLY]: "Chatty and warm.",
+      [Tone.CONFIDENT]: "Assertive but repetitive.",
+      [Tone.EMPATHETIC]: "Soft language, lots of 'feeling' words.",
+      [Tone.ACADEMIC]: "Dense, using passive voice, but structurally messy.",
+      [Tone.WITTY]: "Sarcastic and punchy.",
+      [Tone.DRAMATIC]: "Over-emphasizing everything."
     };
 
     const strengthDirectives = {
-      [Strength.LOW]: "Keep the original structure. Just swap out the most robotic words (e.g. change 'utilize' to 'use').",
-      [Strength.MEDIUM]: "Combine some sentences. Break others. Add conversational filler words like 'Well,' or 'Basically'.",
-      [Strength.HIGH]: "Heavily paraphrase. Change the subject of sentences (Passive voice is okay if it sounds human). Remove all 'topic sentences'.",
-      [Strength.MAXIMUM]: "NUCLEAR OPTION: Simulate a 'Translation Artifact' style. Imagine the text was translated to German and back. It should sound slightly clunky, wordy, and unpolished. Use simple vocabulary but weird sentence structures. REMOVE ALL LOGICAL TRANSITIONS."
+      [Strength.LOW]: "Minor tweaks. Remove 'AI words' like 'Moreover'.",
+      [Strength.MEDIUM]: "Add filler words. Break perfect grammar.",
+      [Strength.HIGH]: "Structure changes. Use the 'Is-Is' bridge.",
+      [Strength.MAXIMUM]: `
+        **MODE: 0% DETECTION (THE "NOISE" ENGINE)**
+        - Mimic the provided "Gold Standard" examples EXACTLY.
+        - Your logic must be circular.
+        - You must use specific redundant phrases: "actually out there even", "basically just this".
+        - Do not be concise. Be delightfully inefficient.
+      `
     };
 
     const prompt = `
-      **SOURCE TEXT TO REWRITE:**
+      **TASK**: Rewrite the input to bypass AI detection using the 'Syntactic Noise' method.
+
+      **INPUT TEXT**:
       """
       ${input}
       """
 
-      **CONFIGURATION:**
-      - **Target Persona**: ${personaMap[tone]}
-      - **Context/Purpose**: ${purpose} (Adjust vocabulary accordingly)
-      - **Reading Level**: ${readability} (If 'Simple', use exclusively short words)
-      - **Strategy**: ${strengthDirectives[strength]}
+      **SETTINGS**:
+      - **Tone**: ${personaMap[tone]}
+      - **Intensity**: ${strengthDirectives[strength]}
 
-      **CRITICAL INSTRUCTIONS FOR BYPASS:**
-      1. **Anti-Structure**: Do NOT use "First, Second, Third". Do NOT use "In conclusion". Just say the thing.
-      2. **Perplexity Injection**: intentionally choose a less common synonym for every 3rd adjective.
-      3. **Sentence Sprawl**: If the input has a list, turn it into a run-on paragraph. 
-      4. **No Perfect Grammar**: If selected strength is MAXIMUM, allow run-on sentences and comma splices.
+      **GOLD STANDARD EXAMPLES (MIMIC THIS STYLE EXACTLY)**:
+      
+      Ref 1 (Input): "Bananas are naturally radioactive."
+      Ref 1 (Output): "Alright, well, bananas are radioactive by nature, and that is, you know, something, but there is no need to worry."
 
-      Output ONLY the rewritten text. Do not bold or markdown anything unless requested.
+      Ref 2 (Input): "The Banana Equivalent Dose is a funny unit used to explain radiation."
+      Ref 2 (Output): "And the truth is, there is actually out there even, a totally funny scientific unit, it is called the “Banana Equivalent Dose”, and what that dose is, is, after all, just this, it is just an amount of radiation you would literally generate by eating just one banana, you know, a banana."
+
+      Ref 3 (Input): "You need to eat millions for it to hurt you."
+      Ref 3 (Output): "You want to eat, in fact to eat, millions of bananas at the same time so that the radiation of the bananas will actually kind of even sort of matter, but it is, you know, a most entertaining way to think."
+
+      **INSTRUCTIONS**:
+      1. IGNORE standard grammar.
+      2. Use the "Gold Standard" phrasing patterns ("actually out there even", "what that is, is").
+      3. output ONLY the rewritten text.
     `;
 
-    // High temperature for maximum entropy (randomness) to confuse detectors
-    // Standard AI uses Temp ~0.7. We go significantly higher for humanization.
+    // High temperature for maximum perplexity (unpredictability)
     let temperature = 1.0; 
     let topP = 0.95;
-    let topK = 40;
 
-    if (strength === Strength.HIGH) {
-      temperature = 1.4;
-      topK = 50;
-    } 
     if (strength === Strength.MAXIMUM) {
-      temperature = 1.65; // Extremely high randomness
-      topP = 0.99; // Allow almost any token
-      topK = 80; // Wide vocabulary net
+      temperature = 1.6; // High chaos
+      topP = 0.99;
     }
 
     const responseStream = await ai.models.generateContentStream({
@@ -95,13 +101,20 @@ export const streamHumanizedText = async (
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: temperature,
         topP: topP,
-        topK: topK,
       }
     });
 
     for await (const chunk of responseStream) {
       if (chunk.text) {
-        onChunk(chunk.text);
+        // Aggressive sanitization to remove any AI formatting artifacts
+        const safeText = chunk.text
+          .replace(/—/g, ', ') 
+          .replace(/;/g, ', and')
+          .replace(/:/g, ' -') // Colons often flag as "structured"
+          .replace(/\*\*/g, '') 
+          .replace(/##/g, '');
+          
+        onChunk(safeText);
       }
     }
 
@@ -116,15 +129,24 @@ export const analyzeAIProbability = async (text: string): Promise<AIDetectionRes
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `
-        Analyze this text for AI patterns (perfection, transition words, predictable structure).
+        Act as a harsh AI Detector. Analyze this text for "Perplexity" and "Burstiness".
         
         TEXT:
         """
-        ${text.substring(0, 1500)}...
+        ${text.substring(0, 1500)}
         """
 
-        Act as a harsh critic. If it flows too well, it's AI. If it's clunky, it's human.
-        Return JSON: { "score": number (0-100, where 100 is AI), "verdict": "Human"|"Mixed"|"AI", "analysis": "1 sentence reason" }
+        Indicators of HUMAN text (Pass):
+        - Circular logic ("A is A because it is A").
+        - Redundant phrasing ("actually", "literally", "basically").
+        - Grammatically imperfect run-on sentences.
+
+        Indicators of AI text (Fail):
+        - Perfect grammar.
+        - Logical progression (A -> B -> C).
+        - Transition words ("Therefore", "However").
+
+        Return JSON: { "score": number (0-100, 100=AI), "verdict": "Human"|"Mixed"|"AI", "analysis": "Brief reason" }
       `,
       config: {
         responseMimeType: "application/json",
@@ -144,12 +166,7 @@ export const analyzeAIProbability = async (text: string): Promise<AIDetectionRes
     try {
         result = JSON.parse(cleanJson);
     } catch (e) {
-        // Fallback if JSON parsing fails
-        return {
-            score: 50,
-            verdict: 'Mixed',
-            analysis: 'Analysis inconclusive.'
-        };
+        return { score: 50, verdict: 'Mixed', analysis: 'Analysis inconclusive.' };
     }
     
     return {
@@ -159,10 +176,6 @@ export const analyzeAIProbability = async (text: string): Promise<AIDetectionRes
     };
   } catch (e) {
     console.error("Detection failed", e);
-    return {
-      score: 0,
-      verdict: 'Human',
-      analysis: 'Could not connect to detection service.'
-    };
+    return { score: 0, verdict: 'Human', analysis: 'Service unavailable.' };
   }
 };

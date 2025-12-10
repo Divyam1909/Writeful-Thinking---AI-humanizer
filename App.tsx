@@ -6,7 +6,8 @@ import StrengthSlider from './components/StrengthSlider';
 import OutputDisplay from './components/OutputDisplay';
 import AdvancedSettings from './components/AdvancedSettings';
 import HistoryModal from './components/HistoryModal';
-import { Wand2, Eraser, AlertCircle, Quote, History as HistoryIcon } from 'lucide-react';
+import InfoModal from './components/InfoModal';
+import { Wand2, Eraser, AlertCircle, Quote, History as HistoryIcon, Info } from 'lucide-react';
 
 const App: React.FC = () => {
   const [inputText, setInputText] = useState('');
@@ -23,6 +24,9 @@ const App: React.FC = () => {
   // History State
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  
+  // Info State
+  const [showInfo, setShowInfo] = useState(false);
 
   // Load history from local storage on mount
   useEffect(() => {
@@ -98,7 +102,7 @@ const App: React.FC = () => {
   const inputWordCount = inputText.trim().split(/\s+/).filter(w => w.length > 0).length;
 
   return (
-    <div className="min-h-screen bg-[#0b1121] font-sans text-slate-200 selection:bg-primary/30 selection:text-white pb-10">
+    <div className="min-h-screen bg-[#0b1121] font-sans text-slate-200 selection:bg-primary/30 selection:text-white flex flex-col">
       
       {/* Navbar */}
       <nav className="sticky top-0 z-20 border-b border-slate-800 bg-[#0b1121]/80 backdrop-blur-xl">
@@ -114,7 +118,14 @@ const App: React.FC = () => {
               <p className="text-[10px] text-slate-500 font-medium tracking-wide uppercase">Undetectable Rewriter</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+             <button 
+               onClick={() => setShowInfo(true)}
+               className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2"
+               title="How to use"
+             >
+                <Info size={18} />
+             </button>
              <button 
                onClick={() => setShowHistory(true)}
                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2"
@@ -142,8 +153,13 @@ const App: React.FC = () => {
           localStorage.removeItem('writeful_thinking_history');
         }}
       />
+      
+      <InfoModal
+        isOpen={showInfo}
+        onClose={() => setShowInfo(false)}
+      />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         
         {/* Tone Selector - Full Width Strip */}
         <div className="mb-8">
@@ -263,6 +279,11 @@ const App: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="py-6 text-center text-slate-600 text-sm font-medium border-t border-slate-800/50 bg-[#0b1121]">
+        <p>Made with love by <span className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-default">Divyam</span></p>
+      </footer>
     </div>
   );
 };

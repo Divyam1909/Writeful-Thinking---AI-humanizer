@@ -21,7 +21,7 @@ const StrengthSlider: React.FC<StrengthSliderProps> = ({ strength, onChange }) =
       case Strength.LOW: return { label: "Low", desc: "Minor Tweaks", color: "text-green-400" };
       case Strength.MEDIUM: return { label: "Medium", desc: "Balanced Rewrite", color: "text-yellow-400" };
       case Strength.HIGH: return { label: "High", desc: "Structural Changes", color: "text-orange-400" };
-      case Strength.MAXIMUM: return { label: "Max", desc: "Aggressive (Anti-AI)", color: "text-red-400" };
+      case Strength.MAXIMUM: return { label: "Native (0% Detect)", desc: "Syntactic Noise Strategy", color: "text-red-500" };
       default: return { label: "", desc: "", color: "" };
     }
   };
